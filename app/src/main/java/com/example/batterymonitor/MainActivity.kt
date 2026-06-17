@@ -43,7 +43,6 @@ class MainActivity : AppCompatActivity() {
         val batteryStatus = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { filter ->
             registerReceiver(null, filter)
         }
-
         val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
         val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
         val batteryPct = if (level >= 0 && scale > 0) (level * 100) / scale else 0
