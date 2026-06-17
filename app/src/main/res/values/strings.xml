@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BatteryMonitor</string>
-
     <string name="battery_level">Battery Level: %d%%</string>
     <string name="start_monitor">Start Monitoring</string>
     <string name="stop_monitor">Stop Monitoring</string>
-
     <string name="notification_channel_name">Battery Monitor</string>
-    <string name="notification_title">Battery Monitor</string>
+    <string name="notification_title">BatteryMonitor</string>
     <string name="notification_text">Monitorando bateria</string>
 </resources>
