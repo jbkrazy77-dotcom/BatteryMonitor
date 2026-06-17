@@ -1,17 +1,44 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissões obrigatórias -->
+    <!-- PERMISSÕES CORRETAS -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- REMOVIDO: BATTERY_STATS (inútil para apps comuns) -->
 
     <application
         android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault.Light">
+        android:theme="@style/Theme.AppCompat.Light"
+        tools:targetApi="tiramisu">
 
-        <!-- Tela principal do app -->
+        <!-- Serviço interno (mantido) -->
+        <service
+            android:name=".BatteryService"
+            android:exported="false" />
+
+        <!-- Receiver para bateria (mantido, exportado corretamente) -->
+        <receiver
+            android:name=".BatteryReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BATTERY_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Serviço em foreground com tipo corrigido -->
+        <service
+            android:name=".BatteryMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <!-- Justificativa obrigatória para "specialUse" na Play Store -->
+            <property
+                android:name="android.foreground_service_type_special_use"
+                android:value="Monitoramento contínuo do nível da bateria para notificar o usuário sobre economia de energia." />
+        </service>
+
+        <!-- Activity principal (mantida) -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -20,12 +47,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Serviço de monitoramento (o que você está tentando iniciar) -->
-        <service
-            android:name=".BatteryMonitorService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
 
     </application>
 
