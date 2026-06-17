@@ -1,5 +1,7 @@
 package com.example.batterymonitor
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
@@ -16,6 +18,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var batteryProgress: ProgressBar
     private lateinit var startButton: Button
     private lateinit var stopButton: Button
+    private var batteryReceiver: BroadcastReceiver? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +29,7 @@ class MainActivity : AppCompatActivity() {
         startButton = findViewById(R.id.startButton)
         stopButton = findViewById(R.id.stopButton)
 
+        registerBatteryReceiver()
         updateBatteryInfo()
 
         startButton.setOnClickListener {
@@ -39,15 +43,32 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateBatteryInfo() {
-        val batteryStatus = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { filter ->
-            registerReceiver(null, filter)
+    private fun registerBatteryReceiver() {
+        batteryReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == Intent.ACTION_BATTERY_CHANGED) {
+                    updateBatteryInfo()
+                }
+            }
         }
-        val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-        val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        registerReceiver(batteryReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+    }
+
+    private fun updateBatteryInfo() {
+        val batteryIntent = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { intentFilter ->
+            registerReceiver(null, intentFilter)
+        }
+        val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
         val batteryPct = if (level >= 0 && scale > 0) (level * 100 / scale) else 0
 
         batteryLevelText.text = getString(R.string.battery_level, batteryPct)
         batteryProgress.progress = batteryPct
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        batteryReceiver?.let { unregisterReceiver(it) }
     }
 }

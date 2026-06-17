@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">BatteryMonitor</string>
 
-    <!-- Strings da tela principal -->
-    <string name="battery_level">Battery Level</string>
+    <!-- Main screen strings -->
+    <string name="battery_level">Battery Level: %d%%</string>
     <string name="start_monitor">Start Monitoring</string>
     <string name="stop_monitor">Stop Monitoring</string>
 

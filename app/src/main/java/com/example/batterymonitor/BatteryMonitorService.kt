@@ -31,21 +31,22 @@ class BatteryMonitorService : Service() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        toneGenerator = ToneGenerator(ToneGenerator.TONE_PROP_BEEP, 100)
+        try {
+            toneGenerator = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 100)
+        } catch (e: Exception) {
+            // Fallback if tone generator fails
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
 
-        // Acquire wake lock
         val powerManager = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "BatteryMonitor::WakeLock")
-        wakeLock?.acquire(10 * 60 * 1000L) // 10 min, but we'll renew
+        wakeLock?.acquire(10 * 60 * 1000L)
 
         registerBatteryReceiver()
-
-        // Periodic check
         handler.post(monitorRunnable)
 
         return START_STICKY
@@ -54,11 +55,13 @@ class BatteryMonitorService : Service() {
     private fun registerBatteryReceiver() {
         receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                updateBatteryStatus(intent)
+                if (intent?.action == Intent.ACTION_BATTERY_CHANGED) {
+                    updateBatteryStatus(intent)
+                }
             }
         }
         val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        registerReceiver(receiver, filter)
+        registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
     }
 
     private val monitorRunnable = object : Runnable {
@@ -69,31 +72,37 @@ class BatteryMonitorService : Service() {
     }
 
     private fun checkBatteryLevel() {
-        val batteryStatus = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        val level = batteryStatus?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
-        val scale = batteryStatus?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        val batteryIntent = IntentFilter(Intent.ACTION_BATTERY_CHANGED).let { intentFilter ->
+            registerReceiver(null, intentFilter)
+        }
+        val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
         val batteryPct = if (level >= 0 && scale > 0) level * 100 / scale else 0
-        val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+        val status = batteryIntent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL
 
         if (batteryPct <= 5 && !isCharging) {
             if (!isLowBattery) {
                 isLowBattery = true
+                try {
+                    toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP, 500)
+                } catch (e: Exception) {
+                    // Fallback
+                }
             }
-            toneGenerator?.startTone(ToneGenerator.TONE_PROP_BEEP, 500)
         } else {
             isLowBattery = false
         }
     }
 
     private fun updateBatteryStatus(intent: Intent?) {
-        // Could update UI if bound, but for now just for receiver
+        // Update notification with current battery status
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.notification_channel_name)
-            val descriptionText = "Canal para monitoramento de bateria"
+            val descriptionText = "Monitoramento de bateria"
             val importance = NotificationManager.IMPORTANCE_LOW
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
@@ -132,3 +141,5 @@ class BatteryMonitorService : Service() {
         return null
     }
 }
+
+import android.media.AudioManager

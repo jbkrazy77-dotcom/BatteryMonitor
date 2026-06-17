@@ -26,7 +26,6 @@ class BatteryService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // O serviço ficará em execução em foreground para monitorar bateria
         return START_STICKY
     }
 
