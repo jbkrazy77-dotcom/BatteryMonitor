@@ -20,12 +20,12 @@
             </intent-filter>
         </activity>
 
-        <!-- Serviço de monitoramento -->
+        <!-- Serviço antigo (mantido por segurança) -->
         <service
-            android:name=".BatteryMonitorService"
+            android:name=".BatteryService"
             android:exported="false" />
 
-        <!-- Receiver de bateria (corrigido com exported) -->
+        <!-- Receiver de bateria (corrigido) -->
         <receiver
             android:name=".BatteryReceiver"
             android:exported="false">
@@ -33,6 +33,12 @@
                 <action android:name="android.intent.action.BATTERY_CHANGED" />
             </intent-filter>
         </receiver>
+
+        <!-- Serviço principal de monitoramento -->
+        <service
+            android:name=".BatteryMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
 
     </application>
 
