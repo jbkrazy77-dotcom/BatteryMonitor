@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Permissões -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
@@ -10,17 +11,7 @@
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault.Light">
 
-        <!-- Activity principal -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <!-- Serviço antigo (mantido por segurança) -->
+        <!-- Serviço antigo -->
         <service
             android:name=".BatteryService"
             android:exported="false" />
@@ -34,11 +25,21 @@
             </intent-filter>
         </receiver>
 
-        <!-- Serviço principal de monitoramento -->
+        <!-- Serviço de monitoramento -->
         <service
             android:name=".BatteryMonitorService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <!-- Activity principal -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
     </application>
 
